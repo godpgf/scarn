@@ -101,7 +101,7 @@ class Solver(object):
                     param_group["lr"] = learning_rate
                 
                 self.step += 1
-                progress(self.step / cfg.print_interval)
+                progress((self.step * 100) // cfg.print_interval)
                 if cfg.verbose and self.step % cfg.print_interval == 0:
                     if cfg.scale > 0:
                         psnr = self.evaluate("dataset/Urban100", scale=cfg.scale, num_step=self.step)
