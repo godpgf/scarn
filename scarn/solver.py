@@ -10,6 +10,12 @@ from torch.utils.data import DataLoader
 from dataset import TrainDataset, TestDataset
 
 
+def progress(percent=0, width=30):
+    left = width * percent // 100
+    right = width - left
+    print('\r[', '#' * left, ' ' * right, ']',f' {percent:.0f}%',sep='', end='', flush=True)
+
+
 class Solver(object):
     def __init__(self, model, cfg):
         if cfg.scale > 0:
@@ -38,7 +44,7 @@ class Solver(object):
                                        size=cfg.patch_size)
         self.train_loader = DataLoader(self.train_data,
                                        batch_size=cfg.batch_size,
-                                       num_workers=0,
+                                       num_workers=1,
                                        shuffle=True, drop_last=True)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -95,6 +101,7 @@ class Solver(object):
                     param_group["lr"] = learning_rate
                 
                 self.step += 1
+                progress(self.step / cfg.print_interval)
                 if cfg.verbose and self.step % cfg.print_interval == 0:
                     if cfg.scale > 0:
                         psnr = self.evaluate("dataset/Urban100", scale=cfg.scale, num_step=self.step)
