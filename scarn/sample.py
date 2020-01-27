@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument("--sample_dir", type=str, default="./sample")
     parser.add_argument("--test_data_dir", type=str, default="dataset/DIV2K/DIV2K_valid")
     parser.add_argument("--cuda", action="store_true")
-    parser.add_argument("--scale", type=int, default=0)
+    parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--shave", type=int, default=20)
 
     return parser.parse_args()
