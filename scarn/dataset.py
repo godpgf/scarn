@@ -103,12 +103,12 @@ class TestDataset(data.Dataset):
         ])
 
     def __getitem__(self, index):
-        hr = Image.open(self.hr[index]).convert('L')
-        lr = Image.open(self.lr[index]).convert('L') 
+        hr = Image.open(self.hr[index])
+        lr = Image.open(self.lr[index])
 
         # 读出不经过缩放的所有像素
-        hr = hr.convert("1")
-        lr = lr.convert("1")
+        hr = hr.convert("L")
+        lr = lr.convert("L")
         filename = self.hr[index].split("/")[-1]
 
         return self.transform(hr), self.transform(lr), filename
