@@ -29,6 +29,7 @@ def parse_args():
 
 def save_image(tensor, filename):
     tensor = tensor.cpu()
+    print(tensor)
     ndarr = tensor.mul(255).clamp(0, 255).byte().permute(1, 2, 0).numpy()
     im = Image.fromarray(ndarr)
     im.save(filename)
