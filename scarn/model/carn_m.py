@@ -50,6 +50,7 @@ class Net(nn.Module):
         self.c2 = BasicBlock(channels * 3, channels, 1, 1, 0)
         self.c3 = BasicBlock(channels * 4, channels, 1, 1, 0)
 
+        self.upsample = UpsampleBlock(channels, scale=scale, multi_scale=multi_scale, group=group)
         self.exit = nn.Conv2d(channels, 1, 3, 1, 1)
 
     def forward(self, x, scale):
