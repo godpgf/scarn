@@ -38,34 +38,32 @@ def save_image(tensor, filename):
 
 
 def sample(net, device, dataset, cfg):
-    # scale = cfg.scale
+    scale = cfg.scale
     for step, (hr, lr, name) in enumerate(dataset):
         if "DIV2K" in dataset.name:
             t1 = time.time()
             h, w = lr.size()[1:]
-            # h_half, w_half = int(h/2), int(w/2)
-            # h_chop, w_chop = h_half + cfg.shave, w_half + cfg.shave
+            h_half, w_half = int(h/2), int(w/2)
+            h_chop, w_chop = h_half + cfg.shave, w_half + cfg.shave
 
-            # lr_patch = torch.Tensor(4, 1, h_chop, w_chop)
-            lr_patch = torch.Tensor(1, 1, h, w)
-            lr_patch[0].copy_(lr[:, 0:h, 0:w])
-            # lr_patch[0].copy_(lr[:, 0:h_chop, 0:w_chop])
-            # lr_patch[1].copy_(lr[:, 0:h_chop, w-w_chop:w])
-            # lr_patch[2].copy_(lr[:, h-h_chop:h, 0:w_chop])
-            # lr_patch[3].copy_(lr[:, h-h_chop:h, w-w_chop:w])
+            lr_patch = torch.Tensor(4, 1, h_chop, w_chop)
+            lr_patch[0].copy_(lr[:, 0:h_chop, 0:w_chop])
+            lr_patch[1].copy_(lr[:, 0:h_chop, w-w_chop:w])
+            lr_patch[2].copy_(lr[:, h-h_chop:h, 0:w_chop])
+            lr_patch[3].copy_(lr[:, h-h_chop:h, w-w_chop:w])
             lr_patch = lr_patch.to(device)
             
             sr = net(lr_patch, cfg.scale).detach()
             
-            # h, h_half, h_chop = h*scale, h_half*scale, h_chop*scale
-            # w, w_half, w_chop = w*scale, w_half*scale, w_chop*scale
+            h, h_half, h_chop = h*scale, h_half*scale, h_chop*scale
+            w, w_half, w_chop = w*scale, w_half*scale, w_chop*scale
 
-            # result = torch.Tensor(1, h, w).to(device)
-            # result[:, 0:h_half, 0:w_half].copy_(sr[0, :, 0:h_half, 0:w_half])
-            # result[:, 0:h_half, w_half:w].copy_(sr[1, :, 0:h_half, w_chop-w+w_half:w_chop])
-            # result[:, h_half:h, 0:w_half].copy_(sr[2, :, h_chop-h+h_half:h_chop, 0:w_half])
-            # result[:, h_half:h, w_half:w].copy_(sr[3, :, h_chop-h+h_half:h_chop, w_chop-w+w_half:w_chop])
-            # sr = result
+            result = torch.Tensor(1, h, w).to(device)
+            result[:, 0:h_half, 0:w_half].copy_(sr[0, :, 0:h_half, 0:w_half])
+            result[:, 0:h_half, w_half:w].copy_(sr[1, :, 0:h_half, w_chop-w+w_half:w_chop])
+            result[:, h_half:h, 0:w_half].copy_(sr[2, :, h_chop-h+h_half:h_chop, 0:w_half])
+            result[:, h_half:h, w_half:w].copy_(sr[3, :, h_chop-h+h_half:h_chop, w_chop-w+w_half:w_chop])
+            sr = result
             t2 = time.time()
         else:
             t1 = time.time()
@@ -92,11 +90,8 @@ def sample(net, device, dataset, cfg):
         sr_im_path = os.path.join(sr_dir, "{}".format(name.replace("HR", "SR")))
         hr_im_path = os.path.join(hr_dir, "{}".format(name))
 
-        print("save hr")
+        save_image(sr, sr_im_path)
         save_image(hr, hr_im_path)
-        print("save sr")
-        save_image(sr[0], sr_im_path)
-
         print("Saved {} ({}x{} -> {}x{}, {:.3f}s)"
             .format(sr_im_path, lr.shape[1], lr.shape[2], sr.shape[1], sr.shape[2], t2-t1))
 
