@@ -90,7 +90,9 @@ def sample(net, device, dataset, cfg):
         sr_im_path = os.path.join(sr_dir, "{}".format(name.replace("HR", "SR")))
         hr_im_path = os.path.join(hr_dir, "{}".format(name))
 
+        print("save sr")
         save_image(sr, sr_im_path)
+        print("save hr")
         save_image(hr, hr_im_path)
         print("Saved {} ({}x{} -> {}x{}, {:.3f}s)"
             .format(sr_im_path, lr.shape[1], lr.shape[2], sr.shape[1], sr.shape[2], t2-t1))
