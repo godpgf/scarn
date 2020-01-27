@@ -91,7 +91,7 @@ def sample(net, device, dataset, cfg):
         hr_im_path = os.path.join(hr_dir, "{}".format(name))
 
         print("save sr")
-        save_image(sr, sr_im_path)
+        save_image(sr[0], sr_im_path)
         print("save hr")
         save_image(hr, hr_im_path)
         print("Saved {} ({}x{} -> {}x{}, {:.3f}s)"
