@@ -11,27 +11,14 @@ def init_weights(modules):
 
 # 这个Module的作用就是每个通道的颜色减去某个数，目的应该是将各个通道的值映射到-1到1之间，提高训练速度
 class MeanShift(nn.Module):
-    def __init__(self, mean_rgb, sub):
+    def __init__(self, sub, mean_gray=0.437):
         super(MeanShift, self).__init__()
 
         sign = -1 if sub else 1
-        r = mean_rgb[0] * sign
-        g = mean_rgb[1] * sign
-        b = mean_rgb[2] * sign
-
-        # 输入通道数为3，输出通道数为3，卷积核大小是1*1，stride是进行一次卷积后特征图滑动1格，padding是最边缘补0数
-        self.shifter = nn.Conv2d(3, 3, 1, 1, 0)
-        # 用3*3的对角矩阵初始化卷积核
-        self.shifter.weight.data = torch.eye(3).view(3, 3, 1, 1)
-        # bias记录的是rgb的经验均值
-        self.shifter.bias.data = torch.Tensor([r, g, b])
-
-        # Freeze the mean shift layer
-        for params in self.shifter.parameters():
-            params.requires_grad = False
+        self.mean_gray = mean_gray * sign
 
     def forward(self, x):
-        x = self.shifter(x)
+        x = x + self.mean_gray
         return x
 
 
