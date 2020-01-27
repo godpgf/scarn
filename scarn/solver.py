@@ -165,8 +165,8 @@ class Solver(object):
             # this evaluation is different to MATLAB version
             # we evaluate PSNR in RGB channel not Y in YCbCR  
             bnd = scale
-            im1 = hr[bnd:-bnd, bnd:-bnd]
-            im2 = sr[bnd:-bnd, bnd:-bnd]
+            im1 = hr[0][bnd:-bnd, bnd:-bnd]
+            im2 = sr[0][bnd:-bnd, bnd:-bnd]
             mean_psnr += psnr(im1, im2) / len(test_data)
 
         return mean_psnr
