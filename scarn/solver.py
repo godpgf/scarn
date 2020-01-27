@@ -107,7 +107,7 @@ class Solver(object):
                         psnr = self.evaluate(cfg.train_data_path, scale=cfg.scale, num_step=self.step)
                         self.writer.add_scalar("DIV2K", psnr, self.step)
                     else:    
-                        psnr = [self.evaluate(cfg.train_data_path, scale=i*2, num_step=self.step) for i in range(1, 3)]
+                        psnr = [self.evaluate(cfg.test_data_path, scale=i*2, num_step=self.step) for i in range(1, 3)]
                         self.writer.add_scalar("DIV2K_2x", psnr[0], self.step)
                         self.writer.add_scalar("DIV2K_4x", psnr[1], self.step)
                     print(psnr)
