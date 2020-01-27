@@ -14,12 +14,11 @@ def random_crop(hr, lr, size, scale):
     x = random.randint(0, w-size)
     y = random.randint(0, h-size)
 
-    # hsize = size*scale
-    # hx, hy = x*scale, y*scale
+    hsize = size*scale
+    hx, hy = x*scale, y*scale
 
     crop_lr = lr[y:y+size, x:x+size].copy()
-    crop_hr = hr[y:y+size, x:x+size].copy()
-    # crop_hr = hr[hy:hy+hsize, hx:hx+hsize].copy()
+    crop_hr = hr[hy:hy+hsize, hx:hx+hsize].copy()
 
     return crop_hr, crop_lr
 

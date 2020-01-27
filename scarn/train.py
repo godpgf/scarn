@@ -22,7 +22,7 @@ def parse_args():
     
     parser.add_argument("--num_gpu", type=int, default=1)
     parser.add_argument("--shave", type=int, default=20)
-    parser.add_argument("--scale", type=int, default=2)
+    parser.add_argument("--scale", type=int, default=0)
 
     parser.add_argument("--verbose", action="store_true", default="store_true")
 

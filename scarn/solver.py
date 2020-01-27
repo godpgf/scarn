@@ -79,8 +79,8 @@ class Solver(object):
                 else:
                     # only use one of multi-scale data
                     # i know this is stupid but just temporary
-                    scale = random.randint(2, 4)
-                    hr, lr = inputs[scale-2][0], inputs[scale-2][1]
+                    scale = random.randint(1, 2) * 2
+                    hr, lr = inputs[scale//2-1][0], inputs[scale//2-1][1]
                 
                 hr = hr.to(self.device)
                 lr = lr.to(self.device)

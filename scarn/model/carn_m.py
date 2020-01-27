@@ -74,10 +74,9 @@ class Net(nn.Module):
         o3 = self.c3(c3)
 
         # 放大长宽
-        # out = self.upsample(o3, scale=scale)
-        out = o3
+        out = self.upsample(o3, scale=scale)
 
-        # 将channels个通道还原回3个
+        # 将channels个通道还原回1个
         out = self.exit(out)
         # 颜色加上均值
         out = self.add_mean(out)
