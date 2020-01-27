@@ -29,7 +29,7 @@ def parse_args():
 
 def save_image(tensor, filename):
     tensor = tensor.cpu()
-    print(tensor)
+    print(tensor.shape)
     ndarr = tensor.mul(255).clamp(0, 255).byte().permute(1, 2, 0).numpy()
     im = Image.fromarray(ndarr, mode='I;16')
     im.save(filename)
@@ -90,10 +90,11 @@ def sample(net, device, dataset, cfg):
         sr_im_path = os.path.join(sr_dir, "{}".format(name.replace("HR", "SR")))
         hr_im_path = os.path.join(hr_dir, "{}".format(name))
 
-        print("save sr")
-        save_image(sr[0], sr_im_path)
         print("save hr")
         save_image(hr, hr_im_path)
+        print("save sr")
+        save_image(sr[0], sr_im_path)
+
         print("Saved {} ({}x{} -> {}x{}, {:.3f}s)"
             .format(sr_im_path, lr.shape[1], lr.shape[2], sr.shape[1], sr.shape[2], t2-t1))
 
