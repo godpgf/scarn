@@ -92,27 +92,35 @@ class TestDataset(data.Dataset):
                                              "X{}/*.png".format(scale)))
         else:
             all_files = glob.glob(os.path.join(dirname, "x{}/*.png".format(scale)))
-            print(all_files)
             self.hr = [name for name in all_files if "HR" in name]
             self.lr = [name for name in all_files if "LR" in name]
 
-        self.hr.sort()
-        self.lr.sort()
+        if len(self.hr) > 0:
+            self.hr.sort()
+        if len(self.lr) > 0:
+            self.lr.sort()
 
         self.transform = transforms.Compose([
             transforms.ToTensor()
         ])
 
     def __getitem__(self, index):
-        hr = Image.open(self.hr[index])
-        lr = Image.open(self.lr[index])
+        if len(self.hr) > 0:
+            hr = Image.open(self.hr[index])
+            hr = hr.convert("L")
+            filename = self.hr[index].split("/")[-1]
+            hr = self.transform(hr)
+        else:
+            hr = None
+            filename = None
+        if len(self.lr) > 0:
+            lr = Image.open(self.lr[index])
+            lr = lr.convert("L")
+            lr = self.transform(lr)
+        else:
+            lr = None
 
-        # 读出不经过缩放的所有像素
-        hr = hr.convert("L")
-        lr = lr.convert("L")
-        filename = self.hr[index].split("/")[-1]
-
-        return self.transform(hr), self.transform(lr), filename
+        return hr, lr, filename
 
     def __len__(self):
         return len(self.hr)

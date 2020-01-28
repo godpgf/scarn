@@ -67,9 +67,10 @@ def sample(net, device, dataset, cfg, scale):
             t2 = time.time()
         else:
             t1 = time.time()
-            lr = lr.unsqueeze(0).to(device)
-            sr = net(lr, scale).detach().squeeze(0)
-            lr = lr.squeeze(0)
+            if lr is not None:
+                lr = lr.unsqueeze(0).to(device)
+                sr = net(lr, scale).detach().squeeze(0)
+                lr = lr.squeeze(0)
             t2 = time.time()
         
         model_name = cfg.ckpt_path.split(".")[0].split("/")[-1]
@@ -90,7 +91,8 @@ def sample(net, device, dataset, cfg, scale):
         sr_im_path = os.path.join(sr_dir, "{}".format(name.replace("HR", "SR")))
         hr_im_path = os.path.join(hr_dir, "{}".format(name))
 
-        save_image(sr, sr_im_path)
+        if sr is not None:
+            save_image(sr, sr_im_path)
         if hr is not None:
             save_image(hr, hr_im_path)
         print("Saved {} ({}x{} -> {}x{}, {:.3f}s)"
