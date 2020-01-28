@@ -19,7 +19,8 @@ def parse_args():
     parser.add_argument("--group", type=int, default=4)
     parser.add_argument("--channels", type=int, default=32)
     parser.add_argument("--sample_dir", type=str, default="./sample")
-    parser.add_argument("--test_data_dir", type=str, default="dataset/DIV2K/DIV2K_valid")
+    # parser.add_argument("--test_data_dir", type=str, default="dataset/DIV2K/DIV2K_valid")
+    parser.add_argument("--test_data_dir", type=str, default="./sample/test")
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--scale", type=int, default=0)
     parser.add_argument("--shave", type=int, default=20)
@@ -67,7 +68,7 @@ def sample(net, device, dataset, cfg, scale):
         else:
             t1 = time.time()
             lr = lr.unsqueeze(0).to(device)
-            sr = net(lr, cale).detach().squeeze(0)
+            sr = net(lr, scale).detach().squeeze(0)
             lr = lr.squeeze(0)
             t2 = time.time()
         
@@ -90,7 +91,8 @@ def sample(net, device, dataset, cfg, scale):
         hr_im_path = os.path.join(hr_dir, "{}".format(name))
 
         save_image(sr, sr_im_path)
-        save_image(hr, hr_im_path)
+        if hr is not None:
+            save_image(hr, hr_im_path)
         print("Saved {} ({}x{} -> {}x{}, {:.3f}s)"
             .format(sr_im_path, lr.shape[1], lr.shape[2], sr.shape[1], sr.shape[2], t2-t1))
 

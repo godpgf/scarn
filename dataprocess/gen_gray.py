@@ -26,6 +26,8 @@ def get_input_list(path):
 if __name__ == "__main__":
     from_path = sys.argv[1]
     to_path = sys.argv[2]
+    # from_path = "D:\\test_sr\\img"
+    # to_path = "D:\\test_sr\\input"
     # from_path = "D:\\lenovo_proj\\PycharmProjects\\CARN-pytorch\\dataset\\DIV2K\\DIV2K_train_LR_bicubic\\X4"
     # to_path = "D:\\lenovo_proj\\PycharmProjects\\scarn\\dataset\\DIV2K\\DIV2K_train_LR_bicubic\\X4"
     inputs = get_input_list(from_path)
