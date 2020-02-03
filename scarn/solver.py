@@ -165,10 +165,8 @@ class Solver(object):
 
             # 将归一化后的像素还原
             m = nn.Upsample(scale_factor=scale, mode='linear')
-            print("result", result.shape)
-            print("lr2", lr[2].unsqueeze(0).shape,m(lr[2].unsqueeze(0)).shape)
-            print("lr1", lr[1].unsqueeze(0).shape,m(lr[1].unsqueeze(0)).shape)
-            sr = result * (m(lr[2].unsqueeze(0)) + 0.06) + m(lr[1].unsqueeze(0))
+
+            sr = (result.unsqueeze(0) * (m(lr[2].reshape([-1, -1, h, w])) + 0.06) + m(lr[1].reshape([-1, -1, h, w])))[0]
 
             hr = hr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
             sr = sr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
