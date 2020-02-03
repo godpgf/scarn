@@ -106,17 +106,10 @@ class TestDataset(data.Dataset):
         hr = Image.open(self.hr[index])
         lr = Image.open(self.lr[index])
 
-        if index == 886:
-            print(self.hr[index])
-            print(self.lr[index])
-
         # 读出不经过缩放的所有像素
         hr = hr.convert("RGB")
         lr = lr.convert("RGB")
         filename = self.hr[index].split("/")[-1]
-
-        if index == 886:
-            print(filename)
 
         return self.transform(hr), self.transform(lr), filename
 
