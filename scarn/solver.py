@@ -167,8 +167,8 @@ class Solver(object):
             m = nn.Upsample(scale_factor=scale, mode='linear')
 
             print("result", result.unsqueeze(0).shape)
-            print("lr2", lr[2].reshape([-1, -1, h, w]))
-            sr = (result.unsqueeze(0) * (m(lr[2].reshape([-1, -1, h, w])) + 0.06) + m(lr[1].reshape([-1, -1, h, w])))[0]
+            print("lr2", m(lr[2].reshape([1, 1, h, w])).shape)
+            sr = (result.unsqueeze(0) * (m(lr[2].reshape([1, 1, h, w])) + 0.06) + m(lr[1].reshape([1, 1, h, w])))[0]
 
             hr = hr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
             sr = sr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
