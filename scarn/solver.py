@@ -170,7 +170,7 @@ class Solver(object):
             # print(lr_h, lr_w)
             sr = (result.cpu().unsqueeze(0) * (m(lr[2].reshape([1, 1, lr_h, lr_w])) + 0.06) + m(lr[1].reshape([1, 1, lr_h, lr_w])))[0]
             # print(sr.shape)
-            print(hr.shape, sr.shape)
+            # print(hr.shape, sr.shape)
 
             hr = hr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
             sr = sr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
@@ -179,8 +179,8 @@ class Solver(object):
             # this evaluation is different to MATLAB version
             # we evaluate PSNR in RGB channel not Y in YCbCR  
             bnd = scale
-            im1 = hr[0][bnd:-bnd, bnd:-bnd]
-            im2 = sr[0][bnd:-bnd, bnd:-bnd]
+            im1 = hr[bnd:-bnd, bnd:-bnd]
+            im2 = sr[bnd:-bnd, bnd:-bnd]
             mean_psnr += psnr(im1, im2) / len(test_data)
 
         return mean_psnr
