@@ -167,9 +167,10 @@ class Solver(object):
             m = nn.Upsample(scale_factor=scale, mode='bilinear')
 
             lr_h, lr_w = lr[2].size()[:]
-            print(lr_h, lr_w)
+            # print(lr_h, lr_w)
             sr = (result.cpu().unsqueeze(0) * (m(lr[2].reshape([1, 1, lr_h, lr_w])) + 0.06) + m(lr[1].reshape([1, 1, lr_h, lr_w])))[0]
-            print(sr.shape)
+            # print(sr.shape)
+            print(hr.shape, sr.shape)
 
             hr = hr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
             sr = sr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
