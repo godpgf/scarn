@@ -103,6 +103,7 @@ class TestDataset(data.Dataset):
         ])
 
     def __getitem__(self, index):
+        print(self.hr[index], self.lr[index], self.scale)
         hr = Image.open(self.hr[index])
         lr = Image.open(self.lr[index])
 
