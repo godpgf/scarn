@@ -129,7 +129,7 @@ class Solver(object):
         test_data = TestDataset(test_data_dir, scale=scale)
         test_loader = DataLoader(test_data,
                                  batch_size=1,
-                                 num_workers=1,
+                                 num_workers=0,
                                  shuffle=False)
 
         for step, inputs in enumerate(test_loader):
