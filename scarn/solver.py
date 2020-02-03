@@ -18,7 +18,7 @@ def progress(percent=0, width=30):
 
 def normalize(x, device):
     x = x.to(device)
-    return (x[:, 0, :, :] - x[:, 1, :, :]) / (x[:, 2, :, :] + 0.06)
+    return ((x[:, 0, :, :] - x[:, 1, :, :]) / (x[:, 2, :, :] + 0.06)).unsqueeze(1)
 
 
 class Solver(object):
@@ -165,7 +165,7 @@ class Solver(object):
 
             # 将归一化后的像素还原
             m = nn.Upsample(scale_factor=scale, mode='linear')
-            sr = result * (m(lr[2]) + 0.06) + m(lr[1])
+            sr = result[0] * (m(lr[2]) + 0.06) + m(lr[1])
 
             hr = hr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
             sr = sr.cpu().mul(255).clamp(0, 255).byte().numpy()

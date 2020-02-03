@@ -30,7 +30,7 @@ def parse_args():
 
 def normalize(x, device):
     x = x.to(device)
-    return (x[:, 0, :, :] - x[:, 1, :, :]) / (x[:, 2, :, :] + 0.06)
+    return ((x[:, 0, :, :] - x[:, 1, :, :]) / (x[:, 2, :, :] + 0.06)).unsqueeze(1)
 
 
 def save_image(tensor, filename):
