@@ -23,6 +23,7 @@ def parse_args():
                         default="sample/")
     
     parser.add_argument("--num_gpu", type=int, default=1)
+    # 某个像素在计算它对应位置的超分结果时，会受到周围一些像素的影响，设置周围像素的最远距离
     parser.add_argument("--shave", type=int, default=20)
     parser.add_argument("--scale", type=int, default=0)
 

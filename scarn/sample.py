@@ -28,6 +28,11 @@ def parse_args():
     return parser.parse_args()
 
 
+def normalize(x, device):
+    x = x.to(device)
+    return (x[:, 0, :, :] - x[:, 1, :, :]) / (x[:, 2, :, :] + 0.06)
+
+
 def save_image(tensor, filename):
     tensor = tensor.cpu()
     print(tensor.shape)
@@ -51,7 +56,7 @@ def sample(net, device, dataset, cfg, scale):
             lr_patch[1].copy_(lr[:, 0:h_chop, w-w_chop:w])
             lr_patch[2].copy_(lr[:, h-h_chop:h, 0:w_chop])
             lr_patch[3].copy_(lr[:, h-h_chop:h, w-w_chop:w])
-            lr_patch = lr_patch.to(device)
+            lr_patch = normalize(lr_patch, device)
             
             sr = net(lr_patch, scale).detach()
             
@@ -63,13 +68,21 @@ def sample(net, device, dataset, cfg, scale):
             result[:, 0:h_half, w_half:w].copy_(sr[1, :, 0:h_half, w_chop-w+w_half:w_chop])
             result[:, h_half:h, 0:w_half].copy_(sr[2, :, h_chop-h+h_half:h_chop, 0:w_half])
             result[:, h_half:h, w_half:w].copy_(sr[3, :, h_chop-h+h_half:h_chop, w_chop-w+w_half:w_chop])
-            sr = result
+
+            # 将归一化后的像素还原
+            m = nn.Upsample(scale_factor=scale, mode='linear')
+            sr = result * (m(lr[2]) + 0.06) + m(lr[1])
             t2 = time.time()
         else:
             t1 = time.time()
             if lr is not None:
-                lr = lr.unsqueeze(0).to(device)
-                sr = net(lr, scale).detach().squeeze(0)
+                lr = lr.unsqueeze(0)
+                lr = normalize(lr, device)
+
+                result = net(lr, scale).detach().squeeze(0)
+                # 将归一化后的像素还原
+                m = nn.Upsample(scale_factor=scale, mode='linear')
+                sr = result * (m(lr[2]) + 0.06) + m(lr[1])
                 lr = lr.squeeze(0)
             t2 = time.time()
         

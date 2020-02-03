@@ -38,9 +38,6 @@ class Net(nn.Module):
         group = kwargs.get("group", 1)
         channels = kwargs.get("channels")
 
-        self.sub_mean = MeanShift(sub=True)
-        self.add_mean = MeanShift(sub=False)
-
         # 和tensorflow不同，卷积输入格式是[B,C,H,W]，对比TF是[B,H,W,C]
         self.entry = nn.Conv2d(1, channels, 3, 1, 1)
 
@@ -55,8 +52,6 @@ class Net(nn.Module):
         self.exit = nn.Conv2d(channels, 1, 3, 1, 1)
 
     def forward(self, x, scale):
-        # 输入的像素减去通道经验均值
-        x = self.sub_mean(x)
         # 用3*3的卷积核将原来的3通道变成64通道
         x = self.entry(x)
         c0 = o0 = x
@@ -79,7 +74,5 @@ class Net(nn.Module):
 
         # 将channels个通道还原回1个
         out = self.exit(out)
-        # 颜色加上均值
-        out = self.add_mean(out)
 
         return out

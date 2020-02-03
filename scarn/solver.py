@@ -16,6 +16,11 @@ def progress(percent=0, width=30):
     print('\r[', '#' * left, ' ' * right, ']',f' {percent:.0f}%',sep='', end='', flush=True)
 
 
+def normalize(x, device):
+    x = x.to(device)
+    return (x[:, 0, :, :] - x[:, 1, :, :]) / (x[:, 2, :, :] + 0.06)
+
+
 class Solver(object):
     def __init__(self, model, cfg):
         if cfg.scale > 0:
@@ -79,11 +84,11 @@ class Solver(object):
                 else:
                     # only use one of multi-scale data
                     # i know this is stupid but just temporary
-                    scale = random.randint(1, 2) * 2
-                    hr, lr = inputs[scale//2-1][0], inputs[scale//2-1][1]
+                    scale = random.randint(2, 4)
+                    hr, lr = inputs[scale-2][0], inputs[scale-2][1]
                 
-                hr = hr.to(self.device)
-                lr = lr.to(self.device)
+                hr = normalize(hr, self.device)
+                lr = normalize(lr, self.device)
                 
                 sr = refiner(lr, scale)
                 loss = self.loss_fn(sr, hr)
@@ -107,12 +112,11 @@ class Solver(object):
                         psnr = self.evaluate(cfg.train_data_path, scale=cfg.scale, num_step=self.step)
                         self.writer.add_scalar("DIV2K", psnr, self.step)
                     else:    
-                        psnr = [self.evaluate(cfg.test_data_path, scale=i*2, num_step=self.step) for i in range(1, 3)]
+                        psnr = [self.evaluate(cfg.test_data_path, scale=i, num_step=self.step) for i in range(2, 5)]
                         self.writer.add_scalar("DIV2K_2x", psnr[0], self.step)
-                        self.writer.add_scalar("DIV2K_4x", psnr[1], self.step)
-                    print("", flush=True)
+                        self.writer.add_scalar("DIV2K_3x", psnr[1], self.step)
+                        self.writer.add_scalar("DIV2K_4x", psnr[2], self.step)
                     print(psnr)
-                            
                     self.save(cfg.ckpt_dir, cfg.ckpt_name)
 
             if self.step > cfg.max_steps: break
@@ -131,19 +135,20 @@ class Solver(object):
         for step, inputs in enumerate(test_loader):
             hr = inputs[0].squeeze(0)
             lr = inputs[1].squeeze(0)
-            name = inputs[2][0]
+            # name = inputs[2][0]
 
             h, w = lr.size()[1:]
             h_half, w_half = int(h/2), int(w/2)
+            # 想把一张图切割成4份，但还需要考虑cfg.shave个相关像素。
             h_chop, w_chop = h_half + cfg.shave, w_half + cfg.shave
 
             # split large image to 4 patch to avoid OOM error
-            lr_patch = torch.FloatTensor(4, 1, h_chop, w_chop)
+            lr_patch = torch.FloatTensor(4, 3, h_chop, w_chop)
             lr_patch[0].copy_(lr[:, 0:h_chop, 0:w_chop])
             lr_patch[1].copy_(lr[:, 0:h_chop, w-w_chop:w])
             lr_patch[2].copy_(lr[:, h-h_chop:h, 0:w_chop])
             lr_patch[3].copy_(lr[:, h-h_chop:h, w-w_chop:w])
-            lr_patch = lr_patch.to(self.device)
+            lr_patch = normalize(lr_patch, self.device)
             
             # run refine process in here!
             sr = self.refiner(lr_patch, scale).data
@@ -157,9 +162,12 @@ class Solver(object):
             result[:, 0:h_half, w_half:w].copy_(sr[1, :, 0:h_half, w_chop-w+w_half:w_chop])
             result[:, h_half:h, 0:w_half].copy_(sr[2, :, h_chop-h+h_half:h_chop, 0:w_half])
             result[:, h_half:h, w_half:w].copy_(sr[3, :, h_chop-h+h_half:h_chop, w_chop-w+w_half:w_chop])
-            sr = result
 
-            hr = hr.cpu().mul(255).clamp(0, 255).byte().numpy()
+            # 将归一化后的像素还原
+            m = nn.Upsample(scale_factor=scale, mode='linear')
+            sr = result * (m(lr[2]) + 0.06) + m(lr[1])
+
+            hr = hr[0].cpu().mul(255).clamp(0, 255).byte().numpy()
             sr = sr.cpu().mul(255).clamp(0, 255).byte().numpy()
             
             # evaluate PSNR

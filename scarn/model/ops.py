@@ -11,14 +11,13 @@ def init_weights(modules):
 
 # 这个Module的作用就是每个通道的颜色减去某个数，目的应该是将各个通道的值映射到-1到1之间，提高训练速度
 class MeanShift(nn.Module):
-    def __init__(self, sub, mean_gray=0.437):
+    def __init__(self, sub):
         super(MeanShift, self).__init__()
 
-        sign = -1 if sub else 1
-        self.mean_gray = mean_gray * sign
+        self.sign = -1 if sub else 1
 
     def forward(self, x):
-        x = x + self.mean_gray
+        x = (x[:, 0, :, :] - x[:, 1, :, :]) / (x[:, 2, :, :] + 0.06)
         return x
 
 

@@ -49,14 +49,14 @@ class TrainDataset(data.Dataset):
         self.size = size
         h5f = h5py.File(path, "r")
         
-        self.hr = [v[:][..., np.newaxis] for v in h5f["HR"].values()]
+        self.hr = [v[:] for v in h5f["HR"].values()]
         # perform multi-scale training
         if scale == 0:
-            self.scale = [2, 4]
-            self.lr = [[v[:][..., np.newaxis] for v in h5f["X{}".format(i)].values()] for i in self.scale]
+            self.scale = [2, 3, 4]
+            self.lr = [[v[:] for v in h5f["X{}".format(i)].values()] for i in self.scale]
         else:
             self.scale = [scale]
-            self.lr = [[v[:][..., np.newaxis] for v in h5f["X{}".format(scale)].values()]]
+            self.lr = [[v[:] for v in h5f["X{}".format(scale)].values()]]
         
         h5f.close()
 
@@ -95,32 +95,23 @@ class TestDataset(data.Dataset):
             self.hr = [name for name in all_files if "HR" in name]
             self.lr = [name for name in all_files if "LR" in name]
 
-        if len(self.hr) > 0:
-            self.hr.sort()
-        if len(self.lr) > 0:
-            self.lr.sort()
+        self.hr.sort()
+        self.lr.sort()
 
         self.transform = transforms.Compose([
             transforms.ToTensor()
         ])
 
     def __getitem__(self, index):
-        if len(self.hr) > 0:
-            hr = Image.open(self.hr[index])
-            hr = hr.convert("L")
-            filename = self.hr[index].split("/")[-1]
-            hr = self.transform(hr)
-        else:
-            hr = None
-            filename = None
-        if len(self.lr) > 0:
-            lr = Image.open(self.lr[index])
-            lr = lr.convert("L")
-            lr = self.transform(lr)
-        else:
-            lr = None
+        hr = Image.open(self.hr[index])
+        lr = Image.open(self.lr[index])
 
-        return hr, lr, filename
+        # 读出不经过缩放的所有像素
+        hr = hr.convert("RGB")
+        lr = lr.convert("RGB")
+        filename = self.hr[index].split("/")[-1]
+
+        return self.transform(hr), self.transform(lr), filename
 
     def __len__(self):
         return len(self.hr)
