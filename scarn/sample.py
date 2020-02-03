@@ -70,7 +70,7 @@ def sample(net, device, dataset, cfg, scale):
             result[:, h_half:h, w_half:w].copy_(sr[3, :, h_chop-h+h_half:h_chop, w_chop-w+w_half:w_chop])
 
             # 将归一化后的像素还原
-            m = nn.Upsample(scale_factor=scale, mode='linear')
+            m = nn.Upsample(scale_factor=scale, mode='bilinear')
             sr = result * (m(lr[2]) + 0.06) + m(lr[1])
             t2 = time.time()
         else:
@@ -81,7 +81,7 @@ def sample(net, device, dataset, cfg, scale):
 
                 result = net(lr, scale).detach().squeeze(0)
                 # 将归一化后的像素还原
-                m = nn.Upsample(scale_factor=scale, mode='linear')
+                m = nn.Upsample(scale_factor=scale, mode='bilinear')
                 sr = result * (m(lr[2]) + 0.06) + m(lr[1])
                 lr = lr.squeeze(0)
             t2 = time.time()

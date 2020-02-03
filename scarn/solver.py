@@ -164,7 +164,7 @@ class Solver(object):
             result[:, h_half:h, w_half:w].copy_(sr[3, :, h_chop-h+h_half:h_chop, w_chop-w+w_half:w_chop])
 
             # 将归一化后的像素还原
-            m = nn.Upsample(scale_factor=scale, mode='linear')
+            m = nn.Upsample(scale_factor=scale, mode='bilinear')
 
             lr_h, lr_w = lr[2].size()[:]
             print(lr_h, lr_w)
