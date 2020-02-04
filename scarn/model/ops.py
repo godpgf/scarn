@@ -10,24 +10,24 @@ def init_weights(modules):
 
 
 def yCbCr2rgb(input_im):
-    im_flat = input_im.contiguous().view(-1, 3).float()
-    mat = torch.tensor([[1.164, 1.164, 1.164],
-                        [0, -0.392, 2.017],
-                        [1.596, -0.813, 0]]).to(input_im.device)
-    bias = torch.tensor([-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0]).to(input_im.device)
-    temp = (im_flat + bias).mm(mat)
-    out = temp.view(list(input_im.size())[0], 3, list(input_im.size())[2], list(input_im.size())[3])
+    y = input_im[:, 0:1, :, :]
+    cb = input_im[:, 1:2, :, :]
+    cr = input_im[:, 2:3, :, :]
+    r = 1.164 * (y - 16.0/255.0) + 1.596 * (cr - 128.0/255.0)
+    g = 1.164 * (y - 16.0/255.0) - 0.392 * (cb - 128.0/255.0) - 0.813 * (cr - 128.0/255.0)
+    b = 1.164 * (y - 16) + 2.017 * (cb - 128.0/255.0)
+    out = torch.cat((r, g, b), 1)
     return out
 
 
 def rgb2yCbCr(input_im):
-    im_flat = input_im.contiguous().view(-1, 3).float()
-    mat = torch.tensor([[0.257, -0.148, 0.439],
-                        [0.564, -0.291, -0.368],
-                        [0.098, 0.439, -0.071]]).to(input_im.device)
-    bias = torch.tensor([16.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0]).to(input_im.device)
-    temp = im_flat.mm(mat) + bias
-    out = temp.view(input_im.shape[0], 3, input_im.shape[2], input_im.shape[3])
+    r = input_im[:, 0:1, :, :]
+    g = input_im[:, 1:2, :, :]
+    b = input_im[:, 2:3, :, :]
+    y = r * 0.257 + g * 0.564 + b * 0.098 + 16.0 / 255.0
+    cb = -0.148 * r - 0.291 * g + 0.439 * b + 128.0 / 255.0
+    cr = 0.439 * r - 0.368 * g - 0.071 * b + 128.0 / 255.0
+    out = torch.cat((y, cb, cr), 1)
     return out
    
 

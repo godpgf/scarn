@@ -59,7 +59,7 @@ class Net(nn.Module):
         # 输入的像素减去通道经验均值
         x = self.sub_mean(x)
         # 用3*3的卷积核将原来的3通道变成64通道
-        c0 = o0 = self.entry(x[:, 0:1, :, :] - 0.437)
+        c0 = o0 = self.entry(x[:, 0:1, :, :] - 0.5)
 
         # 将64个通道经过各种交叉的卷积
         b1 = self.b1(o0)
@@ -78,7 +78,7 @@ class Net(nn.Module):
         out = self.upsample(o3, scale=scale)
 
         # 将64个通道还原回1个
-        out = self.exit(out) + 0.437
+        out = self.exit(out) + 0.5
         outCbCr = self.bilinear_upsample(x[:, 1:, :, :], scale=scale)
         out = torch.cat((out, outCbCr), 1)
 
