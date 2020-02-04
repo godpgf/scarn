@@ -59,7 +59,7 @@ class Net(nn.Module):
         # 输入的像素减去通道经验均值
         x = self.sub_mean(x)
         # 用3*3的卷积核将原来的3通道变成64通道
-        c0 = o0 = self.entry(x[:, 0, :, :] - 0.437)
+        c0 = o0 = self.entry(x[:, 0:1, :, :] - 0.437)
 
         # 将64个通道经过各种交叉的卷积
         b1 = self.b1(o0)
