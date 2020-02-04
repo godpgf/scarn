@@ -41,7 +41,7 @@ class Net(nn.Module):
         self.add_mean = MeanShift((0.4488, 0.4371, 0.4040), sub=False)
 
         # 和tensorflow不同，卷积输入格式是[B,C,H,W]，对比TF是[B,H,W,C]
-        self.entry = nn.Conv2d(1, channels, 3, 1, 1)
+        self.entry = nn.Conv2d(3, channels, 3, 1, 1)
 
         self.b1 = Block(channels, group=group)
         self.b2 = Block(channels, group=group)
