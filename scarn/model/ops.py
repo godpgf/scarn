@@ -16,7 +16,7 @@ def yCbCr2rgb(input_im):
                         [1.596, -0.813, 0]]).to(input_im.device)
     bias = torch.tensor([-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0]).to(input_im.device)
     temp = (im_flat + bias).mm(mat)
-    out = temp.view(3, list(input_im.size())[1], list(input_im.size())[2])
+    out = temp.view(list(input_im.size())[0], 3, list(input_im.size())[2], list(input_im.size())[3])
     return out
 
 
@@ -27,7 +27,7 @@ def rgb2yCbCr(input_im):
                         [0.098, 0.439, -0.071]]).to(input_im.device)
     bias = torch.tensor([16.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0]).to(input_im.device)
     temp = im_flat.mm(mat) + bias
-    out = temp.view(3, input_im.shape[1], input_im.shape[2])
+    out = temp.view(input_im.shape[0], 3, input_im.shape[2], input_im.shape[3])
     return out
    
 
