@@ -61,8 +61,8 @@ We provide our results on four benchmark dataset (Set5, Set14, B100 and Urban100
 Here are our settings to train CARN and CARN-M. Note: We use two GPU to utilize large batch size, but if OOM error arise, please reduce batch size.
 ```shell
 # For CARN
-$ nohup carn/train.py --model carn > carn.log 2>&1 &
-$ python carn/train.py --patch_size 64 \
+$ nohup python scarn/train.py --model carn > carn.log 2>&1 &
+$ python scarn/train.py --patch_size 64 \
                        --batch_size 64 \
                        --max_steps 600000 \
                        --decay 400000 \
@@ -72,8 +72,8 @@ $ python carn/train.py --patch_size 64 \
                        --scale 0 \
                        --num_gpu 2
 # For CARN-M
-$ nohup carn/train.py --model carn_m > carn_m.log 2>&1 &
-$ python carn/train.py --patch_size 64 \
+$ nohup python scarn/train.py --model carn_m > carn_m.log 2>&1 &
+$ python scarn/train.py --patch_size 64 \
                        --batch_size 64 \
                        --max_steps 600000 \
                        --decay 400000 \

@@ -13,8 +13,8 @@ def yCbCr2rgb(input_im):
     im_flat = input_im.contiguous().view(-1, 3).float()
     mat = torch.tensor([[1.164, 1.164, 1.164],
                         [0, -0.392, 2.017],
-                        [1.596, -0.813, 0]])
-    bias = torch.tensor([-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0])
+                        [1.596, -0.813, 0]]).to(input_im.device)
+    bias = torch.tensor([-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0]).to(input_im.device)
     temp = (im_flat + bias).mm(mat)
     out = temp.view(3, list(input_im.size())[1], list(input_im.size())[2])
     return out
@@ -24,8 +24,8 @@ def rgb2yCbCr(input_im):
     im_flat = input_im.contiguous().view(-1, 3).float()
     mat = torch.tensor([[0.257, -0.148, 0.439],
                         [0.564, -0.291, -0.368],
-                        [0.098, 0.439, -0.071]])
-    bias = torch.tensor([16.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0])
+                        [0.098, 0.439, -0.071]]).to(input_im.device)
+    bias = torch.tensor([16.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0]).to(input_im.device)
     temp = im_flat.mm(mat) + bias
     out = temp.view(3, input_im.shape[1], input_im.shape[2])
     return out
