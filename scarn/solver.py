@@ -79,8 +79,8 @@ class Solver(object):
                 else:
                     # only use one of multi-scale data
                     # i know this is stupid but just temporary
-                    scale = random.randint(1, 2) * 2
-                    hr, lr = inputs[scale//2-1][0], inputs[scale//2-1][1]
+                    scale = random.randint(2, 4)
+                    hr, lr = inputs[scale-2][0], inputs[scale-2][1]
                 
                 hr = hr.to(self.device)
                 lr = lr.to(self.device)
@@ -107,10 +107,11 @@ class Solver(object):
                         psnr = self.evaluate(cfg.train_data_path, scale=cfg.scale, num_step=self.step)
                         self.writer.add_scalar("DIV2K", psnr, self.step)
                     else:    
-                        psnr = [self.evaluate(cfg.test_data_path, scale=i*2, num_step=self.step) for i in range(1, 3)]
+                        psnr = [self.evaluate(cfg.test_data_path, scale=i, num_step=self.step) for i in range(2, 5)]
                         self.writer.add_scalar("DIV2K_2x", psnr[0], self.step)
-                        self.writer.add_scalar("DIV2K_4x", psnr[1], self.step)
-                    print("", flush=True)
+                        self.writer.add_scalar("DIV2K_3x", psnr[1], self.step)
+                        self.writer.add_scalar("DIV2K_4x", psnr[2], self.step)
+                    print('', sep='', end='', flush=True)
                     print(psnr)
                             
                     self.save(cfg.ckpt_dir, cfg.ckpt_name)
@@ -138,7 +139,7 @@ class Solver(object):
             h_chop, w_chop = h_half + cfg.shave, w_half + cfg.shave
 
             # split large image to 4 patch to avoid OOM error
-            lr_patch = torch.FloatTensor(4, 1, h_chop, w_chop)
+            lr_patch = torch.FloatTensor(4, 3, h_chop, w_chop)
             lr_patch[0].copy_(lr[:, 0:h_chop, 0:w_chop])
             lr_patch[1].copy_(lr[:, 0:h_chop, w-w_chop:w])
             lr_patch[2].copy_(lr[:, h-h_chop:h, 0:w_chop])
@@ -152,22 +153,22 @@ class Solver(object):
             w, w_half, w_chop = w*scale, w_half*scale, w_chop*scale
             
             # merge splited patch images
-            result = torch.FloatTensor(1, h, w).to(self.device)
+            result = torch.FloatTensor(3, h, w).to(self.device)
             result[:, 0:h_half, 0:w_half].copy_(sr[0, :, 0:h_half, 0:w_half])
             result[:, 0:h_half, w_half:w].copy_(sr[1, :, 0:h_half, w_chop-w+w_half:w_chop])
             result[:, h_half:h, 0:w_half].copy_(sr[2, :, h_chop-h+h_half:h_chop, 0:w_half])
             result[:, h_half:h, w_half:w].copy_(sr[3, :, h_chop-h+h_half:h_chop, w_chop-w+w_half:w_chop])
             sr = result
 
-            hr = hr.cpu().mul(255).clamp(0, 255).byte().numpy()
-            sr = sr.cpu().mul(255).clamp(0, 255).byte().numpy()
+            hr = hr.cpu().mul(255).clamp(0, 255).byte().permute(1, 2, 0).numpy()
+            sr = sr.cpu().mul(255).clamp(0, 255).byte().permute(1, 2, 0).numpy()
             
             # evaluate PSNR
             # this evaluation is different to MATLAB version
             # we evaluate PSNR in RGB channel not Y in YCbCR  
             bnd = scale
-            im1 = hr[0][bnd:-bnd, bnd:-bnd]
-            im2 = sr[0][bnd:-bnd, bnd:-bnd]
+            im1 = hr[bnd:-bnd, bnd:-bnd]
+            im2 = sr[bnd:-bnd, bnd:-bnd]
             mean_psnr += psnr(im1, im2) / len(test_data)
 
         return mean_psnr

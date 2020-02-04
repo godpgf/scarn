@@ -7,18 +7,53 @@ import torch.nn.functional as F
 
 def init_weights(modules):
     pass
+
+
+def yCbCr2rgb(input_im):
+    im_flat = input_im.contiguous().view(-1, 3).float()
+    mat = torch.tensor([[1.164, 1.164, 1.164],
+                        [0, -0.392, 2.017],
+                        [1.596, -0.813, 0]])
+    bias = torch.tensor([-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0])
+    temp = (im_flat + bias).mm(mat)
+    out = temp.view(3, list(input_im.size())[1], list(input_im.size())[2])
+    return out
+
+
+def rgb2yCbCr(input_im):
+    im_flat = input_im.contiguous().view(-1, 3).float()
+    mat = torch.tensor([[0.257, -0.148, 0.439],
+                        [0.564, -0.291, -0.368],
+                        [0.098, 0.439, -0.071]])
+    bias = torch.tensor([16.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0])
+    temp = im_flat.mm(mat) + bias
+    out = temp.view(3, input_im.shape[1], input_im.shape[2])
+    return out
    
 
 # 这个Module的作用就是每个通道的颜色减去某个数，目的应该是将各个通道的值映射到-1到1之间，提高训练速度
 class MeanShift(nn.Module):
-    def __init__(self, sub, mean_gray=0.437):
+    def __init__(self, mean_rgb, sub):
         super(MeanShift, self).__init__()
 
         sign = -1 if sub else 1
-        self.mean_gray = mean_gray * sign
+        r = mean_rgb[0] * sign
+        g = mean_rgb[1] * sign
+        b = mean_rgb[2] * sign
+
+        # 输入通道数为3，输出通道数为3，卷积核大小是1*1，stride是进行一次卷积后特征图滑动1格，padding是最边缘补0数
+        self.shifter = nn.Conv2d(3, 3, 1, 1, 0)
+        # 用3*3的对角矩阵初始化卷积核
+        self.shifter.weight.data = torch.eye(3).view(3, 3, 1, 1)
+        # bias记录的是rgb的经验均值
+        self.shifter.bias.data = torch.Tensor([r, g, b])
+
+        # Freeze the mean shift layer
+        for params in self.shifter.parameters():
+            params.requires_grad = False
 
     def forward(self, x):
-        x = x + self.mean_gray
+        x = self.shifter(x)
         return x
 
 

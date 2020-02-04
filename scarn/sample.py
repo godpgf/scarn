@@ -30,10 +30,7 @@ def parse_args():
 
 def save_image(tensor, filename):
     tensor = tensor.cpu()
-    print(tensor.shape)
-    # ndarr = tensor.mul(255).clamp(0, 255).byte().permute(1, 2, 0).numpy()
-    # im = Image.fromarray(ndarr)
-    ndarr = tensor[0].mul(255).clamp(0, 255).byte().numpy()
+    ndarr = tensor.mul(255).clamp(0, 255).byte().permute(1, 2, 0).numpy()
     im = Image.fromarray(ndarr)
     im.save(filename)
 
@@ -46,7 +43,7 @@ def sample(net, device, dataset, cfg, scale):
             h_half, w_half = int(h/2), int(w/2)
             h_chop, w_chop = h_half + cfg.shave, w_half + cfg.shave
 
-            lr_patch = torch.Tensor(4, 1, h_chop, w_chop)
+            lr_patch = torch.Tensor(4, 3, h_chop, w_chop)
             lr_patch[0].copy_(lr[:, 0:h_chop, 0:w_chop])
             lr_patch[1].copy_(lr[:, 0:h_chop, w-w_chop:w])
             lr_patch[2].copy_(lr[:, h-h_chop:h, 0:w_chop])
@@ -58,7 +55,7 @@ def sample(net, device, dataset, cfg, scale):
             h, h_half, h_chop = h*scale, h_half*scale, h_chop*scale
             w, w_half, w_chop = w*scale, w_half*scale, w_chop*scale
 
-            result = torch.Tensor(1, h, w).to(device)
+            result = torch.Tensor(3, h, w).to(device)
             result[:, 0:h_half, 0:w_half].copy_(sr[0, :, 0:h_half, 0:w_half])
             result[:, 0:h_half, w_half:w].copy_(sr[1, :, 0:h_half, w_chop-w+w_half:w_chop])
             result[:, h_half:h, 0:w_half].copy_(sr[2, :, h_chop-h+h_half:h_chop, 0:w_half])
@@ -67,10 +64,9 @@ def sample(net, device, dataset, cfg, scale):
             t2 = time.time()
         else:
             t1 = time.time()
-            if lr is not None:
-                lr = lr.unsqueeze(0).to(device)
-                sr = net(lr, scale).detach().squeeze(0)
-                lr = lr.squeeze(0)
+            lr = lr.unsqueeze(0).to(device)
+            sr = net(lr, scale).detach().squeeze(0)
+            lr = lr.squeeze(0)
             t2 = time.time()
         
         model_name = cfg.ckpt_path.split(".")[0].split("/")[-1]
@@ -91,10 +87,8 @@ def sample(net, device, dataset, cfg, scale):
         sr_im_path = os.path.join(sr_dir, "{}".format(name.replace("HR", "SR")))
         hr_im_path = os.path.join(hr_dir, "{}".format(name))
 
-        if sr is not None:
-            save_image(sr, sr_im_path)
-        if hr is not None:
-            save_image(hr, hr_im_path)
+        save_image(sr, sr_im_path)
+        save_image(hr, hr_im_path)
         print("Saved {} ({}x{} -> {}x{}, {:.3f}s)"
             .format(sr_im_path, lr.shape[1], lr.shape[2], sr.shape[1], sr.shape[2], t2-t1))
 
@@ -122,7 +116,7 @@ def main(cfg):
         dataset = TestDataset(cfg.test_data_dir, cfg.scale)
         sample(net, device, dataset, cfg, cfg.scale)
     else:
-        for scale in [2, 4]:
+        for scale in [2, 3, 4]:
             dataset = TestDataset(cfg.test_data_dir, scale)
             sample(net, device, dataset, cfg, scale)
  
