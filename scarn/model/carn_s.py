@@ -60,7 +60,6 @@ class Net(nn.Module):
 
     def forward(self, x, scale):
         x = self.sub_mean(x)
-        x = self.entry(x)
         c0 = o0 = self.entry(x[:, 0:1, :, :] - 0.5)
 
         b1 = self.b1(o0)
