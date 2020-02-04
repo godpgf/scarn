@@ -61,7 +61,7 @@ class Net(nn.Module):
     def forward(self, x, scale):
         x = self.sub_mean(x)
         x = self.entry(x)
-        c0 = o0 = self.entry(x[:, 0, :, :])
+        c0 = o0 = self.entry(x[:, 0, :, :] - 0.437)
 
         b1 = self.b1(o0)
         c1 = torch.cat([c0, b1], dim=1)
@@ -77,7 +77,7 @@ class Net(nn.Module):
 
         out = self.upsample(o3, scale=scale)
 
-        out = self.exit(out)
+        out = self.exit(out) + 0.437
         outCbCr = self.bilinear_upsample(x[:, 1:, :, :], scale=scale)
         out = torch.cat((out, outCbCr), 1)
 
