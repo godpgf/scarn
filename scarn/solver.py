@@ -20,12 +20,10 @@ class Solver(object):
     def __init__(self, model, cfg):
         if cfg.scale > 0:
             self.refiner = model(scale=cfg.scale, 
-                                 group=cfg.group,
-                                 channels=cfg.channels)
+                                 group=cfg.group)
         else:
             self.refiner = model(multi_scale=True, 
-                                 group=cfg.group,
-                                 channels=cfg.channels)
+                                 group=cfg.group)
         
         if cfg.loss_fn in ["MSE"]: 
             self.loss_fn = nn.MSELoss()

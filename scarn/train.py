@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument("--verbose", action="store_true", default="store_true")
 
     parser.add_argument("--group", type=int, default=4)
-    parser.add_argument("--channels", type=int, default=32)
+    # parser.add_argument("--channels", type=int, default=32)
     
     parser.add_argument("--patch_size", type=int, default=64)
     parser.add_argument("--batch_size", type=int, default=64)

@@ -35,7 +35,7 @@ class Net(nn.Module):
         scale = kwargs.get("scale")
         multi_scale = kwargs.get("multi_scale")
         group = kwargs.get("group", 1)
-        channels = kwargs.get("channels")
+        channels = 64
 
         self.sub_mean = MeanShift((0.4488, 0.4371, 0.4040), sub=True)
         self.add_mean = MeanShift((0.4488, 0.4371, 0.4040), sub=False)

@@ -17,7 +17,6 @@ def parse_args():
     parser.add_argument("--model", type=str, default="carn_m")
     parser.add_argument("--ckpt_path", type=str, default="./checkpoint/carn_m/carn_m.pth")
     parser.add_argument("--group", type=int, default=4)
-    parser.add_argument("--channels", type=int, default=32)
     parser.add_argument("--sample_dir", type=str, default="./sample")
     # parser.add_argument("--test_data_dir", type=str, default="dataset/DIV2K/DIV2K_valid")
     parser.add_argument("--test_data_dir", type=str, default="./sample/test")
@@ -96,9 +95,9 @@ def sample(net, device, dataset, cfg, scale):
 def main(cfg):
     module = importlib.import_module("model.{}".format(cfg.model))
     if cfg.scale > 0:
-        net = module.Net(scale=cfg.scale, group=cfg.group, channels=cfg.channels)
+        net = module.Net(scale=cfg.scale, group=cfg.group)
     else:
-        net = module.Net(multi_scale=True, group=cfg.group, channels=cfg.channels)
+        net = module.Net(multi_scale=True, group=cfg.group)
     print(json.dumps(vars(cfg), indent=4, sort_keys=True))
 
     state_dict = torch.load(cfg.ckpt_path, map_location=None if torch.cuda.is_available() else torch.device('cpu'))
