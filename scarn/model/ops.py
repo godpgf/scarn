@@ -120,6 +120,31 @@ class EResidualBlock(nn.Module):
         return out
 
 
+class BilinearUpsampleBlock(nn.Module):
+    def __init__(self, scale, multi_scale):
+        super(BilinearUpsampleBlock, self).__init__()
+
+        if multi_scale:
+            self.up2 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+            self.up3 = nn.Upsample(scale_factor=3, mode='bilinear', align_corners=True)
+            self.up4 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True)
+        else:
+            self.up = nn.Upsample(scale_factor=scale, mode='bilinear', align_corners=True)
+
+        self.multi_scale = multi_scale
+
+    def forward(self, x, scale):
+        if self.multi_scale:
+            if scale == 2:
+                return self.up2(x)
+            elif scale == 3:
+                return self.up3(x)
+            elif scale == 4:
+                return self.up4(x)
+        else:
+            return self.up(x)
+
+
 # 将多个通道放大
 class UpsampleBlock(nn.Module):
     def __init__(self, 
