@@ -92,7 +92,7 @@ class TestDataset(data.Dataset):
             self.lr = glob.glob(os.path.join("{}_LR_bicubic".format(dirname), 
                                              "X{}/*.png".format(scale)))
         else:
-            all_files = glob.glob(os.path.join(dirname, "x{}/*.png".format(scale)))
+            all_files = glob.glob(os.path.join(dirname, "x{}/*.jpg".format(scale)))
             self.hr = [name for name in all_files if "HR" in name]
             self.lr = [name for name in all_files if "LR" in name]
 
