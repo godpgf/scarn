@@ -14,8 +14,8 @@ from PIL import Image
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, default="carn_m")
-    parser.add_argument("--ckpt_path", type=str, default="./checkpoint/carn_m/carn_m.pth")
+    parser.add_argument("--model", type=str, default="carn_m_s")
+    parser.add_argument("--ckpt_path", type=str, default="./checkpoint/carn_m_s/carn_m_s.pth")
     parser.add_argument("--group", type=int, default=4)
     parser.add_argument("--sample_dir", type=str, default="./sample")
     parser.add_argument("--test_data_dir", type=str, default="dataset/DIV2K/DIV2K_valid")
@@ -115,7 +115,7 @@ def main(cfg):
         dataset = TestDataset(cfg.test_data_dir, cfg.scale)
         sample(net, device, dataset, cfg, cfg.scale)
     else:
-        for scale in [3, 4, 2]:
+        for scale in [5]:
             dataset = TestDataset(cfg.test_data_dir, scale)
             sample(net, device, dataset, cfg, scale)
  

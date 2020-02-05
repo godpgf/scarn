@@ -1,7 +1,6 @@
 import math
 import torch
 import torch.nn as nn
-import torch.nn.init as init
 import torch.nn.functional as F
 
 
@@ -128,6 +127,7 @@ class BilinearUpsampleBlock(nn.Module):
             self.up2 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
             self.up3 = nn.Upsample(scale_factor=3, mode='bilinear', align_corners=True)
             self.up4 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True)
+            self.up5 = nn.Upsample(scale_factor=5, mode='bilinear', align_corners=True)
         else:
             self.up = nn.Upsample(scale_factor=scale, mode='bilinear', align_corners=True)
 
@@ -141,6 +141,8 @@ class BilinearUpsampleBlock(nn.Module):
                 return self.up3(x)
             elif scale == 4:
                 return self.up4(x)
+            elif scale == 5:
+                return self.up5(x)
         else:
             return self.up(x)
 
@@ -156,6 +158,7 @@ class UpsampleBlock(nn.Module):
             self.up2 = _UpsampleBlock(n_channels, scale=2, group=group)
             self.up3 = _UpsampleBlock(n_channels, scale=3, group=group)
             self.up4 = _UpsampleBlock(n_channels, scale=4, group=group)
+            self.up5 = _UpsampleBlock(n_channels, scale=5, group=group)
         else:
             self.up = _UpsampleBlock(n_channels, scale=scale, group=group)
 
@@ -169,6 +172,8 @@ class UpsampleBlock(nn.Module):
                 return self.up3(x)
             elif scale == 4:
                 return self.up4(x)
+            elif scale == 5:
+                return self.up5(x)
         else:
             return self.up(x)
 
@@ -178,15 +183,19 @@ class _UpsampleBlock(nn.Module):
         super(_UpsampleBlock, self).__init__()
 
         modules = []
-        if scale == 2 or scale == 4 or scale == 8:
+        if scale == 2 or scale == 4:
             for _ in range(int(math.log(scale, 2))):
                 # 通过卷积操作将原来的通道数量变成原来的4倍
                 modules += [nn.Conv2d(n_channels, 4*n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
                 # 再把通道数量还原回原来的数量，但是长宽就变成原来的2倍
                 modules += [nn.PixelShuffle(2)]
         elif scale == 3:
-            modules += [nn.Conv2d(n_channels, 9*n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
             modules += [nn.PixelShuffle(3)]
+        elif scale == 5:
+            modules += [nn.Conv2d(n_channels, 5 * n_channels, 5, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(5 * n_channels, 25 * n_channels, 5, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(5)]
 
         self.body = nn.Sequential(*modules)
         init_weights(self.modules)

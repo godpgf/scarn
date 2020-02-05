@@ -53,7 +53,7 @@ class TrainDataset(data.Dataset):
         self.hr = [v[:] for v in h5f["HR"].values()]
         # perform multi-scale training
         if scale == 0:
-            self.scale = [2, 3, 4]
+            self.scale = [2, 3, 4, 5]
             self.lr = [[v[:] for v in h5f["X{}".format(i)].values()] for i in self.scale]
         else:
             self.scale = [scale]

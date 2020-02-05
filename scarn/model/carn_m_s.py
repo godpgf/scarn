@@ -37,7 +37,7 @@ class Net(nn.Module):
         scale = kwargs.get("scale")
         multi_scale = kwargs.get("multi_scale")
         group = kwargs.get("group", 1)
-        channels = 32
+        channels = 16
 
         self.sub_mean = rgb2yCbCr
         self.add_mean = yCbCr2rgb

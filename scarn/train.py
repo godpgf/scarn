@@ -9,7 +9,7 @@ from solver import Solver
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, default="carn_m")
+    parser.add_argument("--model", type=str, default="carn_m_s")
     
     parser.add_argument("--print_interval", type=int, default=10000)
     parser.add_argument("--train_data_path", type=str, 
@@ -32,8 +32,8 @@ def parse_args():
     
     parser.add_argument("--patch_size", type=int, default=64)
     parser.add_argument("--batch_size", type=int, default=64)
-    parser.add_argument("--max_steps", type=int, default=300000)
-    parser.add_argument("--decay", type=int, default=200000)
+    parser.add_argument("--max_steps", type=int, default=200000)
+    parser.add_argument("--decay", type=int, default=100000)
     parser.add_argument("--lr", type=float, default=0.0001)
     parser.add_argument("--clip", type=float, default=10.0)
 
