@@ -111,10 +111,10 @@ class TestDataset(data.Dataset):
         # 读出不经过缩放的所有像素
         hr = hr.convert("RGB")
         lr = lr.convert("RGB")
-        filename = self.hr[index].split("/")[-1]
+        filename = self.lr[index].split("/")[-1]
 
         lr = self.transform(lr)
-        hr = self.transform(hr) if len(self.hr) > 0 else self.bilinear_upsample(lr)
+        hr = self.transform(hr) if len(self.hr) > 0 else self.bilinear_upsample(lr.unsqueeze(0)).squeeze(0)
 
         return hr, lr, filename
 
