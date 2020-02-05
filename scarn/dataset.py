@@ -5,6 +5,7 @@ import random
 import numpy as np
 from PIL import Image
 import torch.utils.data as data
+import torch.nn as nn
 import torchvision.transforms as transforms
 
 
@@ -101,17 +102,21 @@ class TestDataset(data.Dataset):
         self.transform = transforms.Compose([
             transforms.ToTensor()
         ])
+        self.bilinear_upsample = nn.Upsample(scale_factor=scale, mode='bilinear', align_corners=True)
 
     def __getitem__(self, index):
-        hr = Image.open(self.hr[index])
         lr = Image.open(self.lr[index])
+        hr = Image.open(self.hr[index]) if len(self.hr) > 0 else lr
 
         # 读出不经过缩放的所有像素
         hr = hr.convert("RGB")
         lr = lr.convert("RGB")
         filename = self.hr[index].split("/")[-1]
 
-        return self.transform(hr), self.transform(lr), filename
+        lr = self.transform(lr)
+        hr = self.transform(hr) if len(self.hr) > 0 else self.bilinear_upsample(lr)
+
+        return hr, lr, filename
 
     def __len__(self):
-        return len(self.hr)
+        return len(self.lr)

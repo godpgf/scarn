@@ -115,7 +115,7 @@ def main(cfg):
         dataset = TestDataset(cfg.test_data_dir, cfg.scale)
         sample(net, device, dataset, cfg, cfg.scale)
     else:
-        for scale in [2, 3, 4]:
+        for scale in [3, 4, 2]:
             dataset = TestDataset(cfg.test_data_dir, scale)
             sample(net, device, dataset, cfg, scale)
  
