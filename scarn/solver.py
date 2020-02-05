@@ -112,7 +112,7 @@ class Solver(object):
                     print('', sep='', end='', flush=True)
                     print(psnr)
                             
-                    self.save(cfg.ckpt_dir, cfg.ckpt_name)
+                    self.save(cfg.ckpt_dir + cfg.model, cfg.model)
 
             if self.step > cfg.max_steps: break
 

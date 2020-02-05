@@ -10,7 +10,6 @@ from solver import Solver
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="carn_m")
-    parser.add_argument("--ckpt_name", type=str, default="carn_m")
     
     parser.add_argument("--print_interval", type=int, default=10000)
     parser.add_argument("--train_data_path", type=str, 
@@ -18,7 +17,7 @@ def parse_args():
     parser.add_argument("--test_data_path", type=str,
                         default="dataset/DIV2K/DIV2K_valid")
     parser.add_argument("--ckpt_dir", type=str,
-                        default="checkpoint/carn_m")
+                        default="checkpoint/")
     parser.add_argument("--sample_dir", type=str,
                         default="sample/")
     
