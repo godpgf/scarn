@@ -36,7 +36,7 @@ def save_image(tensor, filename):
 
 def sample(net, device, dataset, cfg, scale):
     for step, (hr, lr, name) in enumerate(dataset):
-        if "DIV2K" in dataset.name:
+        if "DIV2K" in dataset.name or True:
             t1 = time.time()
             h, w = lr.size()[1:]
             h_half, w_half = int(h/2), int(w/2)
