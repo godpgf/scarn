@@ -52,7 +52,7 @@ class Solver(object):
         self.cfg = cfg
         self.step = 0
         
-        self.writer = SummaryWriter(log_dir=os.path.join("runs", cfg.ckpt_name))
+        self.writer = SummaryWriter(log_dir=os.path.join("runs", cfg.model))
         if cfg.verbose:
             num_params = 0
             for param in self.refiner.parameters():
