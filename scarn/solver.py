@@ -59,7 +59,7 @@ class Solver(object):
                 num_params += param.nelement()
             print("# of params:", num_params)
 
-        os.makedirs(cfg.ckpt_dir, exist_ok=True)
+        os.makedirs(cfg.ckpt_dir + cfg.model, exist_ok=True)
 
     def fit(self):
         cfg = self.cfg
