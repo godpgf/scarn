@@ -190,11 +190,10 @@ class _UpsampleBlock(nn.Module):
                 # 再把通道数量还原回原来的数量，但是长宽就变成原来的2倍
                 modules += [nn.PixelShuffle(2)]
         elif scale == 3:
-            modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 9 * (n_channels >> 1), 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
             modules += [nn.PixelShuffle(3)]
         elif scale == 5:
-            modules += [nn.Conv2d(n_channels, 5 * n_channels, 5, 1, 1, groups=group), nn.ReLU(inplace=True)]
-            modules += [nn.Conv2d(5 * n_channels, 25 * n_channels, 5, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 25 * (n_channels >> 2), 5, 1, 1, groups=group), nn.ReLU(inplace=True)]
             modules += [nn.PixelShuffle(5)]
 
         self.body = nn.Sequential(*modules)
