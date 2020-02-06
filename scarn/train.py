@@ -32,8 +32,8 @@ def parse_args():
     
     parser.add_argument("--patch_size", type=int, default=64)
     parser.add_argument("--batch_size", type=int, default=64)
-    parser.add_argument("--max_steps", type=int, default=200000)
-    parser.add_argument("--decay", type=int, default=100000)
+    parser.add_argument("--max_steps", type=int, default=400000)
+    parser.add_argument("--decay", type=int, default=200000)
     parser.add_argument("--lr", type=float, default=0.0001)
     parser.add_argument("--clip", type=float, default=10.0)
 

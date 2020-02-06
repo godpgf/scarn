@@ -158,9 +158,11 @@ class UpsampleBlock(nn.Module):
         super(UpsampleBlock, self).__init__()
 
         if multi_scale:
-            self.down3_2 = _DownsampleBlock(2.0 / 3.0)
-            self.up3 = _Upsample3Block(n_channels, group=group)
-            self.down5_6 = _DownsampleBlock(5.0 / 6.0)
+            self.up2 = _UpsampleBlock(n_channels, scale=2, group=group)
+            self.up3 = _UpsampleBlock(n_channels, scale=3, group=group)
+            self.up4 = _UpsampleBlock(n_channels, scale=4, group=group)
+            self.up5 = _UpsampleBlock(n_channels, scale=5, group=group)
+            self.up6 = _UpsampleBlock(n_channels, scale=6, group=group)
         else:
             self.up = _UpsampleBlock(n_channels, scale=scale, group=group)
 
@@ -168,50 +170,18 @@ class UpsampleBlock(nn.Module):
 
     def forward(self, x, scale):
         if self.multi_scale:
-            x = self.up3(x)
-            if scale == 3:
-                return x
-            x = self.down3_2(x)
             if scale == 2:
-                return x
-            x = self.up3(x)
-            if scale == 4:
-                return self.down3_2(x)
+                return self.up2(x)
+            elif scale == 3:
+                return self.up3(x)
+            elif scale == 4:
+                return self.up4(x)
             elif scale == 5:
-                return self.down5_6(x)
-            return x
+                return self.up5(x)
+            elif scale == 6:
+                return self.up6(x)
         else:
             return self.up(x)
-
-
-class _Upsample3Block(nn.Module):
-    def __init__(self, n_channels, group=1):
-        super(_Upsample3Block, self).__init__()
-
-        modules = []
-        modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
-        modules += [nn.PixelShuffle(3)]
-
-        self.body = nn.Sequential(*modules)
-        init_weights(self.modules)
-
-    def forward(self, x):
-        out = self.body(x)
-        return out
-
-
-class _DownsampleBlock(nn.Module):
-    def __init__(self, scale):
-        super(_DownsampleBlock, self).__init__()
-        modules = []
-        modules += [nn.Upsample(scale_factor=scale, mode='bilinear', align_corners=True)]
-        modules += [nn.ReLU(inplace=True)]
-
-        self.body = nn.Sequential(*modules)
-
-    def forward(self, x):
-        out = self.body(x)
-        return out
 
 
 class _UpsampleBlock(nn.Module):
@@ -221,19 +191,23 @@ class _UpsampleBlock(nn.Module):
         modules = []
         if scale == 2 or scale == 4:
             for _ in range(int(math.log(scale, 2))):
-                # 通过卷积操作将原来的通道数量变成原来的4倍
-                modules += [nn.Conv2d(n_channels, 4*n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
-                # 再把通道数量还原回原来的数量，但是长宽就变成原来的2倍
-                modules += [nn.PixelShuffle(2)]
+                modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+                modules += [nn.PixelShuffle(3)]
+                modules += [nn.Upsample(scale_factor=2.0/3.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
         elif scale == 3:
             modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
             modules += [nn.PixelShuffle(3)]
         elif scale == 5:
-            modules += [nn.Conv2d(n_channels, 25 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
-            modules += [nn.PixelShuffle(5)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+            modules += [nn.Upsample(scale_factor=2.0 / 3.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+            modules += [nn.Upsample(scale_factor=5.0 / 6.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
         elif scale == 6:
-            modules += [nn.Conv2d(n_channels, 4 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
-            modules += [nn.PixelShuffle(2)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+            modules += [nn.Upsample(scale_factor=2.0 / 3.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
             modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
             modules += [nn.PixelShuffle(3)]
 
