@@ -77,8 +77,8 @@ class Solver(object):
                 else:
                     # only use one of multi-scale data
                     # i know this is stupid but just temporary
-                    # scale = random.randint(2, 5)
-                    scale = int(self.step * 4 / (cfg.max_steps + 1)) + 2
+                    scale = random.randint(2, 6)
+                    # scale = int(self.step * 4 / (cfg.max_steps + 1)) + 2
                     hr, lr = inputs[scale-2][0], inputs[scale-2][1]
                 
                 hr = hr.to(self.device)
@@ -106,13 +106,13 @@ class Solver(object):
                         psnr = self.evaluate(cfg.train_data_path, scale=cfg.scale, num_step=self.step)
                         self.writer.add_scalar("DIV2K", psnr, self.step)
                     else:    
-                        psnr = [self.evaluate(cfg.test_data_path, scale=i, num_step=self.step) for i in range(2, 6)]
+                        psnr = [self.evaluate(cfg.test_data_path, scale=i, num_step=self.step) for i in range(2, 7)]
                         self.writer.add_scalar("DIV2K_2x", psnr[0], self.step)
                         self.writer.add_scalar("DIV2K_3x", psnr[1], self.step)
                         self.writer.add_scalar("DIV2K_4x", psnr[2], self.step)
                         self.writer.add_scalar("DIV2K_5x", psnr[3], self.step)
-                    print('', sep='', end='', flush=True)
-                    print(psnr)
+                        self.writer.add_scalar("DIV2K_6x", psnr[4], self.step)
+                    print(psnr, end='\n', flush=True)
                             
                     self.save(cfg.ckpt_dir + cfg.model, cfg.model)
 

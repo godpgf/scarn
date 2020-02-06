@@ -43,10 +43,15 @@ if __name__ == "__main__":
     # last_name = "x4"
     # scale = 2.0 / 4.0
 
+    # from_path = "D:\lenovo_proj\PycharmProjects\scarn\dataset\DIV2K\DIV2K_train_LR_bicubic\X3"
+    # to_path = "D:\lenovo_proj\PycharmProjects\scarn\dataset\DIV2K\DIV2K_train_LR_bicubic\X5"
+    # last_name = "x5"
+    # scale = 3.0 / 5.0
+
     from_path = "D:\lenovo_proj\PycharmProjects\scarn\dataset\DIV2K\DIV2K_train_LR_bicubic\X3"
-    to_path = "D:\lenovo_proj\PycharmProjects\scarn\dataset\DIV2K\DIV2K_train_LR_bicubic\X5"
-    last_name = "x5"
-    scale = 3.0 / 5.0
+    to_path = "D:\lenovo_proj\PycharmProjects\scarn\dataset\DIV2K\DIV2K_train_LR_bicubic\X6"
+    last_name = "x6"
+    scale = 3.0 / 6.0
 
     inputs = get_input_list(from_path)
     for idx, input_path in enumerate(inputs):

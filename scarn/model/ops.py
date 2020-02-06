@@ -128,6 +128,7 @@ class BilinearUpsampleBlock(nn.Module):
             self.up3 = nn.Upsample(scale_factor=3, mode='bilinear', align_corners=True)
             self.up4 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True)
             self.up5 = nn.Upsample(scale_factor=5, mode='bilinear', align_corners=True)
+            self.up6 = nn.Upsample(scale_factor=6, mode='bilinear', align_corners=True)
         else:
             self.up = nn.Upsample(scale_factor=scale, mode='bilinear', align_corners=True)
 
@@ -143,6 +144,8 @@ class BilinearUpsampleBlock(nn.Module):
                 return self.up4(x)
             elif scale == 5:
                 return self.up5(x)
+            elif scale == 6:
+                return self.up6(x)
         else:
             return self.up(x)
 
@@ -155,10 +158,9 @@ class UpsampleBlock(nn.Module):
         super(UpsampleBlock, self).__init__()
 
         if multi_scale:
-            self.up2 = _UpsampleBlock(n_channels, scale=2, group=group)
-            self.up3 = _UpsampleBlock(n_channels, scale=3, group=group)
-            self.up4 = _UpsampleBlock(n_channels, scale=4, group=group)
-            self.up5 = _UpsampleBlock(n_channels, scale=5, group=group)
+            self.down3_2 = _DownsampleBlock(2.0 / 3.0)
+            self.up3 = _Upsample3Block(n_channels, group=group)
+            self.down5_6 = _DownsampleBlock(5.0 / 6.0)
         else:
             self.up = _UpsampleBlock(n_channels, scale=scale, group=group)
 
@@ -166,16 +168,50 @@ class UpsampleBlock(nn.Module):
 
     def forward(self, x, scale):
         if self.multi_scale:
+            x = self.up3(x)
+            if scale == 3:
+                return x
+            x = self.down3_2(x)
             if scale == 2:
-                return self.up2(x)
-            elif scale == 3:
-                return self.up3(x)
-            elif scale == 4:
-                return self.up4(x)
+                return x
+            x = self.up3(x)
+            if scale == 4:
+                return self.down3_2(x)
             elif scale == 5:
-                return self.up5(x)
+                return self.down5_6(x)
+            return x
         else:
             return self.up(x)
+
+
+class _Upsample3Block(nn.Module):
+    def __init__(self, n_channels, group=1):
+        super(_Upsample3Block, self).__init__()
+
+        modules = []
+        modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+        modules += [nn.PixelShuffle(3)]
+
+        self.body = nn.Sequential(*modules)
+        init_weights(self.modules)
+
+    def forward(self, x):
+        out = self.body(x)
+        return out
+
+
+class _DownsampleBlock(nn.Module):
+    def __init__(self, scale):
+        super(_DownsampleBlock, self).__init__()
+        modules = []
+        modules += [nn.Upsample(scale_factor=scale, mode='bilinear', align_corners=True)]
+        modules += [nn.ReLU(inplace=True)]
+
+        self.body = nn.Sequential(*modules)
+
+    def forward(self, x):
+        out = self.body(x)
+        return out
 
 
 class _UpsampleBlock(nn.Module):
@@ -195,6 +231,11 @@ class _UpsampleBlock(nn.Module):
         elif scale == 5:
             modules += [nn.Conv2d(n_channels, 25 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
             modules += [nn.PixelShuffle(5)]
+        elif scale == 6:
+            modules += [nn.Conv2d(n_channels, 4 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(2)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
 
         self.body = nn.Sequential(*modules)
         init_weights(self.modules)
