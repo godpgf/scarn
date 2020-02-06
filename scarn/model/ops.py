@@ -12,9 +12,9 @@ def yCbCr2rgb(input_im):
     y = input_im[:, 0:1, :, :]
     cb = input_im[:, 1:2, :, :]
     cr = input_im[:, 2:3, :, :]
-    r = 1.164 * (y - 16.0/255.0) + 1.596 * (cr - 128.0/255.0)
-    g = 1.164 * (y - 16.0/255.0) - 0.392 * (cb - 128.0/255.0) - 0.813 * (cr - 128.0/255.0)
-    b = 1.164 * (y - 16.0/255.0) + 2.017 * (cb - 128.0/255.0)
+    r = 1.164 * (y - 16.0 / 255.0) + 1.596 * (cr - 128.0 / 255.0)
+    g = 1.164 * (y - 16.0 / 255.0) - 0.392 * (cb - 128.0 / 255.0) - 0.813 * (cr - 128.0 / 255.0)
+    b = 1.164 * (y - 16.0 / 255.0) + 2.017 * (cb - 128.0 / 255.0)
     out = torch.cat((r, g, b), 1)
     return out
 
@@ -28,7 +28,7 @@ def rgb2yCbCr(input_im):
     cr = 0.439 * r - 0.368 * g - 0.071 * b + 128.0 / 255.0
     out = torch.cat((y, cb, cr), 1)
     return out
-   
+
 
 # 这个Module的作用就是每个通道的颜色减去某个数，目的应该是将各个通道的值映射到-1到1之间，提高训练速度
 class MeanShift(nn.Module):
@@ -69,7 +69,7 @@ class BasicBlock(nn.Module):
         )
 
         init_weights(self.modules)
-        
+
     def forward(self, x):
         out = self.body(x)
         return out
@@ -77,7 +77,7 @@ class BasicBlock(nn.Module):
 
 # 残差网络，conv+relu+conv学习到残差，然后加到原始输入中，最后再一个relu。它可以看成是一种高级的卷积操作
 class ResidualBlock(nn.Module):
-    def __init__(self, 
+    def __init__(self,
                  in_channels, out_channels):
         super(ResidualBlock, self).__init__()
 
@@ -88,7 +88,7 @@ class ResidualBlock(nn.Module):
         )
 
         init_weights(self.modules)
-        
+
     def forward(self, x):
         out = self.body(x)
         out = F.relu(out + x)
@@ -97,22 +97,37 @@ class ResidualBlock(nn.Module):
 
 # carn作者提出了一种残差-E模块，用来提高效率。它可以看成是对上面那个module的替代
 class EResidualBlock(nn.Module):
-    def __init__(self, 
+    def __init__(self,
                  in_channels, out_channels,
                  group=1):
         super(EResidualBlock, self).__init__()
 
-        # groups大于1就使用分组卷积，比如如果是2，输入通道和输出通道都是原来的一半，个由一个卷积去负责。
-        self.body = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 3, 1, 1, groups=group),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, 3, 1, 1, groups=group),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, 1, 1, 0),
-        )
+        if group > 0:
+            # groups大于1就使用分组卷积，比如如果是2，输入通道和输出通道都是原来的一半，个由一个卷积去负责。
+            self.body = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 3, 1, 1, groups=group),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, 3, 1, 1, groups=group),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, 1, 1, 0),
+            )
+        else:
+            self.body = nn.Sequential(
+                nn.Conv2d(in_channels, in_channels, 3, 1, 1, groups=in_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(in_channels, out_channels, 1, 1, 0, groups=1),
+                nn.ReLU(inplace=True),
+
+                nn.Conv2d(out_channels, out_channels, 3, 1, 1, groups=out_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, 1, 1, 0, groups=1),
+                nn.ReLU(inplace=True),
+
+                nn.Conv2d(out_channels, out_channels, 1, 1, 0),
+            )
 
         init_weights(self.modules)
-        
+
     def forward(self, x):
         out = self.body(x)
         out = F.relu(out + x)
@@ -152,8 +167,8 @@ class BilinearUpsampleBlock(nn.Module):
 
 # 将多个通道放大
 class UpsampleBlock(nn.Module):
-    def __init__(self, 
-                 n_channels, scale, multi_scale, 
+    def __init__(self,
+                 n_channels, scale, multi_scale,
                  group=1):
         super(UpsampleBlock, self).__init__()
 
@@ -188,12 +203,53 @@ class _UpsampleBlock(nn.Module):
     def __init__(self, n_channels, scale, group=1):
         super(_UpsampleBlock, self).__init__()
 
+        modules = self._get_group_modules(n_channels, scale,
+                                          group) if group > 0 else self._get_depthwise_separable_modules(n_channels,
+                                                                                                         scale)
+
+        self.body = nn.Sequential(*modules)
+        init_weights(self.modules)
+
+    def _get_depthwise_separable_modules(self, n_channels, scale):
+        modules = []
+        if scale == 2 or scale == 4:
+            for _ in range(int(math.log(scale, 2))):
+                modules += [nn.Conv2d(n_channels, n_channels, 3, 1, 1, groups=n_channels), nn.ReLU(inplace=True)]
+                modules += [nn.Conv2d(n_channels, 9 * n_channels, 1, 1, 0, groups=1), nn.ReLU(inplace=True)]
+                modules += [nn.PixelShuffle(3)]
+                modules += [nn.Upsample(scale_factor=2.0 / 3.0, mode='bilinear', align_corners=True),
+                            nn.ReLU(inplace=True)]
+        elif scale == 3:
+            modules += [nn.Conv2d(n_channels, n_channels, 3, 1, 1, groups=n_channels), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 1, 1, 0, groups=1), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+        elif scale == 5:
+            modules += [nn.Conv2d(n_channels, n_channels, 3, 1, 1, groups=n_channels), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 1, 1, 0, groups=1), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+            modules += [nn.Upsample(scale_factor=2.0 / 3.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, n_channels, 3, 1, 1, groups=n_channels), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 1, 1, 0, groups=1), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+            modules += [nn.Upsample(scale_factor=5.0 / 6.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
+        elif scale == 6:
+            modules += [nn.Conv2d(n_channels, n_channels, 3, 1, 1, groups=n_channels), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 1, 1, 0, groups=1), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+            modules += [nn.Upsample(scale_factor=2.0 / 3.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, n_channels, 3, 1, 1, groups=n_channels), nn.ReLU(inplace=True)]
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 1, 1, 0, groups=1), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+        return modules
+
+    def _get_group_modules(self, n_channels, scale, group=1):
         modules = []
         if scale == 2 or scale == 4:
             for _ in range(int(math.log(scale, 2))):
                 modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
                 modules += [nn.PixelShuffle(3)]
-                modules += [nn.Upsample(scale_factor=2.0/3.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
+                modules += [nn.Upsample(scale_factor=2.0 / 3.0, mode='bilinear', align_corners=True),
+                            nn.ReLU(inplace=True)]
         elif scale == 3:
             modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
             modules += [nn.PixelShuffle(3)]
@@ -210,10 +266,8 @@ class _UpsampleBlock(nn.Module):
             modules += [nn.Upsample(scale_factor=2.0 / 3.0, mode='bilinear', align_corners=True), nn.ReLU(inplace=True)]
             modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
             modules += [nn.PixelShuffle(3)]
+        return modules
 
-        self.body = nn.Sequential(*modules)
-        init_weights(self.modules)
-        
     def forward(self, x):
         out = self.body(x)
         return out

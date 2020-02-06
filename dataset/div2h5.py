@@ -10,7 +10,7 @@ dataset_type = "train"
 f = h5py.File("DIV2K_{}.h5".format(dataset_type), "w")
 dt = h5py.special_dtype(vlen=np.dtype('uint8'))
 
-for subdir in ["HR", "X2", "X3", "X4", "X5"]:
+for subdir in ["HR", "X2", "X3", "X4", "X5", "X6"]:
     if subdir in ["HR"]:
         im_paths = glob.glob(os.path.join(dataset_dir, 
                                           "DIV2K_{}_HR".format(dataset_type), 
